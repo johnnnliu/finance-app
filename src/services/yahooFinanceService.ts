@@ -111,11 +111,42 @@ export class YahooFinanceService implements IFinanceService {
   }
 
   /**
-   * Searches and normalizes single quote summary
+   * Searches and normalizes single quote summary without falling back to other symbols
    */
-  async searchQuote(symbol: string): Promise<StockQuote> {
+  async searchQuote(symbol: string): Promise<StockQuote | null> {
     const cleanSym = symbol.toUpperCase().trim();
-    const quotes = await this.getQuotes([cleanSym]);
-    return quotes[cleanSym];
+    if (!cleanSym) return null;
+
+    try {
+      const raw = await this.fetchChartPayload(cleanSym, '1d', '15m');
+      return normalizeYahooQuote(raw, cleanSym);
+    } catch {
+      // If live proxy is unavailable or symbol is truly invalid, try fallback service explicitly
+      // only if we are in pure mock mode or if fallback has the symbol
+      if (this.proxyUrl === '' && !import.meta.env?.VITE_PROXY_URL) {
+        return this.fallbackService.searchQuote(cleanSym);
+      }
+      return null;
+    }
+  }
+
+  /**
+   * Searches and normalizes single company historical data without falling back to other symbols
+   */
+  async searchHistorical(symbol: string, window: TimeWindow): Promise<HistoricalWindowData | null> {
+    const cleanSym = symbol.toUpperCase().trim();
+    if (!cleanSym) return null;
+
+    const { range, interval } = mapWindowToYahooParams(window);
+    try {
+      const raw = await this.fetchChartPayload(cleanSym, range, interval);
+      const hist = normalizeYahooHistorical(raw, cleanSym, window);
+      return hist.points.length > 0 ? hist : null;
+    } catch {
+      if (this.proxyUrl === '' && !import.meta.env?.VITE_PROXY_URL) {
+        return this.fallbackService.searchHistorical(cleanSym, window);
+      }
+      return null;
+    }
   }
 }

@@ -144,8 +144,24 @@ export class MockFinanceService implements IFinanceService {
     return result;
   }
 
-  async searchQuote(symbol: string): Promise<StockQuote> {
-    const quotes = await this.getQuotes([symbol.toUpperCase().trim()]);
-    return quotes[symbol.toUpperCase().trim()];
+  async searchQuote(symbol: string): Promise<StockQuote | null> {
+    const cleanSym = symbol.toUpperCase().trim();
+    if (!cleanSym) return null;
+    // For mock testing, symbols like 'INVALID', 'NOTFOUND', 'UNKNOWN', 'FAIL' return null
+    if (['INVALID', 'NOTFOUND', 'UNKNOWN', 'FAIL', 'INVALIDTICKER123'].includes(cleanSym)) {
+      return null;
+    }
+    const quotes = await this.getQuotes([cleanSym]);
+    return quotes[cleanSym] || null;
+  }
+
+  async searchHistorical(symbol: string, window: TimeWindow): Promise<HistoricalWindowData | null> {
+    const cleanSym = symbol.toUpperCase().trim();
+    if (!cleanSym) return null;
+    if (['INVALID', 'NOTFOUND', 'UNKNOWN', 'FAIL', 'INVALIDTICKER123'].includes(cleanSym)) {
+      return null;
+    }
+    const data = await this.getHistoricalData([cleanSym], window);
+    return data[cleanSym] || null;
   }
 }
