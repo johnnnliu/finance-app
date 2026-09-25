@@ -100,16 +100,21 @@ export const LineComparisonChart: React.FC<LineComparisonChartProps> = ({
               ]}
             />
             <Legend />
-            {TRACKED_COMPANIES.map((company) => {
-              if (!data[company.symbol]) return null;
+            {symbols.map((sym) => {
+              const company = TRACKED_COMPANIES.find((c) => c.symbol === sym) || {
+                symbol: sym,
+                name: `${sym} Corp.`,
+                color: '#8a3ffc',
+                isAnchor: false,
+              };
               return (
                 <Line
-                  key={company.symbol}
+                  key={sym}
                   type="monotone"
-                  dataKey={company.symbol}
+                  dataKey={sym}
                   name={`${company.symbol} (${company.name.split(' ')[0]})`}
                   stroke={company.color}
-                  strokeWidth={company.isAnchor ? 3 : 1.8}
+                  strokeWidth={company.isAnchor ? 3 : 2}
                   dot={window === '7D'}
                   activeDot={{ r: 6 }}
                 />

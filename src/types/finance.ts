@@ -43,5 +43,6 @@ export interface MarketDataset {
 export interface IFinanceService {
   getQuotes(symbols: string[]): Promise<Record<string, StockQuote>>;
   getHistoricalData(symbols: string[], window: TimeWindow): Promise<Record<string, HistoricalWindowData>>;
-  searchQuote(symbol: string): Promise<StockQuote>;
+  searchQuote(symbol: string): Promise<StockQuote | null>;
+  searchHistorical(symbol: string, window: TimeWindow): Promise<HistoricalWindowData | null>;
 }
