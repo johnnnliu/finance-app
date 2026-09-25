@@ -38,6 +38,13 @@ jobs:
       - name: Build
         run: npm run build --if-present
 
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: finance-app-dist
+          path: dist/
+          retention-days: 7
+
   bob-feature-flow:
     name: Bob-assisted feature workflow guidance
     if: github.event_name == 'pull_request'
